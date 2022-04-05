@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 app = FastAPI()
+fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]
 
 
 class Item(BaseModel):
@@ -22,6 +23,11 @@ class ModelName(str, Enum):
 @app.get("/")
 def hello():
     return {"Hello": "World"}
+
+
+@app.get("/items/")
+async def read_item(skip: int, limit: int = 10):  # skip обязательный, limit не обязательный
+    return fake_items_db[skip:skip + limit]
 
 
 @app.get("/items/{item_id}")
