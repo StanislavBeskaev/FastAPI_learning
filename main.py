@@ -1,3 +1,4 @@
+import os
 from enum import Enum
 from typing import Optional
 
@@ -54,5 +55,11 @@ async def get_model(model_name: ModelName):
 
 
 @app.get("/files/{file_path:path}")
-async def read_file(file_path: str):
-    return {"file_path": file_path}
+async def read_file(file_path: str, encoding: str = "utf-8"):
+    if not os.path.exists(file_path) or not os.path.isfile(file_path):
+        return {"error": f"file '{file_path}' does not exist"}
+
+    with open(file_path, mode="r", encoding=encoding) as file:
+        content = file.read()
+
+    return {"content": content}
