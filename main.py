@@ -11,8 +11,9 @@ fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"
 
 class Item(BaseModel):
     name: str
+    description: Optional[str] = None
     price: float
-    is_offer: Optional[bool]
+    tax: Optional[float] = None
 
 
 class ModelName(str, Enum):
@@ -31,16 +32,32 @@ async def read_item(skip: int, limit: int = 10):  # skip обязательны�
     return fake_items_db[skip:skip + limit]
 
 
+@app.post("/items/")
+async def create_item(item: Item):  # тут item будет в body и проверяться по модели Item
+    item_dict = item.dict()
+    if item.tax:
+        price_with_tax = item.price + item.tax
+        item_dict.update({"price_with_tax": price_with_tax})
+
+    return item_dict
+
+
 @app.get("/items/{item_id}")
 def read_item(item_id: int, q: Optional[str] = None):
     return {"item_id": item_id, "q": q}
 
 
 @app.put("/items/{item_id}")
-def update_item(item_id: int, item: Item):
-    """Обновление элемента"""
-    print(f"{item=}")
-    return {"item_name": item.name, "item_id": item_id}
+async def update_item(item_id: int, item: Item, q: Optional[str] = None):
+    item_dict = item.dict()
+    if item.tax:
+        price_with_tax = item.price + item.tax
+        item_dict.update({"price_with_tax": price_with_tax})
+
+    result = {"item_id": item_id, **item_dict}
+    if q:
+        result.update({"q": q})
+    return result
 
 
 @app.get("/models/{model_name}")
