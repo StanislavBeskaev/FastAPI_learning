@@ -2,7 +2,7 @@ import os
 from enum import Enum
 from typing import Optional
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -22,14 +22,20 @@ class ModelName(str, Enum):
     lenet = "lenet"
 
 
+q_param = Query(..., max_length=50, min_length=3,  description="кушка")
+
+
 @app.get("/")
 def hello():
     return {"Hello": "World"}
 
 
 @app.get("/items/")
-async def read_item(skip: int, limit: int = 10):  # skip обязательный, limit не обязательный
-    return fake_items_db[skip:skip + limit]
+async def read_items(q: str = q_param):
+    results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+    if q:
+        results.update({"q": q})
+    return results
 
 
 @app.post("/items/")
@@ -43,12 +49,12 @@ async def create_item(item: Item):  # тут item будет в body и пров
 
 
 @app.get("/items/{item_id}")
-def read_item(item_id: int, q: Optional[str] = None):
+def read_item(item_id: int, q: str | None = None):
     return {"item_id": item_id, "q": q}
 
 
 @app.put("/items/{item_id}")
-async def update_item(item_id: int, item: Item, q: Optional[str] = None):
+async def update_item(item_id: int, item: Item, q: str | None = None):
     item_dict = item.dict()
     if item.tax:
         price_with_tax = item.price + item.tax
