@@ -23,7 +23,13 @@ class ModelName(str, Enum):
 
 
 q_param = Query(..., max_length=50, min_length=1,  description="кушка")
-q_list_default = Query(["ку", "ку", "шка"], min_length=1, description="кушка")
+q_list_default = Query(
+    ["ку", "ку", "шка"],
+    min_length=1,
+    description="кушка",
+    alias="item-query",
+    # include_in_schema=False   # так не будет показываться в документации
+)
 
 
 @app.get("/")
