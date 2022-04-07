@@ -22,7 +22,8 @@ class ModelName(str, Enum):
     lenet = "lenet"
 
 
-q_param = Query(..., max_length=50, min_length=3,  description="кушка")
+q_param = Query(..., max_length=50, min_length=1,  description="кушка")
+q_list_default = Query(["ку", "ку", "шка"], min_length=1, description="кушка")
 
 
 @app.get("/")
@@ -31,11 +32,9 @@ def hello():
 
 
 @app.get("/items/")
-async def read_items(q: str = q_param):
-    results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
-    if q:
-        results.update({"q": q})
-    return results
+async def read_items(q: list[str] = q_list_default):
+    query_items = {"q": q}
+    return query_items
 
 
 @app.post("/items/")
