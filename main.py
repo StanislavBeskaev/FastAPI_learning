@@ -2,7 +2,7 @@ import os
 from enum import Enum
 from typing import Optional
 
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, Path
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -22,7 +22,20 @@ class ModelName(str, Enum):
     lenet = "lenet"
 
 
-q_param = Query(..., max_length=50, min_length=1,  description="кушка")
+@app.get("/items/{item_id}")
+async def read_items(
+        *,
+        item_id: int = Path(..., description="The ID of the item to get", gt=0, lt=1000),
+        q: str,
+):
+    results = {"item_id": item_id}
+    if q:
+        results.update({"q": q})
+    return results
+
+
+q_param = Query(..., max_length=50, min_length=1, description="кушка")
+
 q_list_default = Query(
     ["ку", "ку", "шка"],
     min_length=1,
@@ -51,11 +64,6 @@ async def create_item(item: Item):  # тут item будет в body и пров
         item_dict.update({"price_with_tax": price_with_tax})
 
     return item_dict
-
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: str | None = None):
-    return {"item_id": item_id, "q": q}
 
 
 @app.put("/items/{item_id}")
