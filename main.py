@@ -2,7 +2,7 @@ import os
 from enum import Enum
 from typing import Optional
 
-from fastapi import FastAPI, Query, Path
+from fastapi import FastAPI, Query, Path, Body
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -66,17 +66,24 @@ async def create_item(item: Item):  # тут item будет в body и пров
     return item_dict
 
 
-@app.put("/items/{item_id}")
-async def update_item(item_id: int, item: Item, q: str | None = None):
-    item_dict = item.dict()
-    if item.tax:
-        price_with_tax = item.price + item.tax
-        item_dict.update({"price_with_tax": price_with_tax})
+class User(BaseModel):
+    username: str
+    full_name: Optional[str] = None
 
-    result = {"item_id": item_id, **item_dict}
+
+@app.put("/items/{item_id}")
+async def update_item(
+    *,
+    item_id: int,
+    item: Item,  # модель должна быть в Body
+    user: User,  # модель должна быть в Body
+    importance: int = Body(..., gt=0),
+    q: Optional[str] = None
+):
+    results = {"item_id": item_id, "item": item, "user": user, "importance": importance}
     if q:
-        result.update({"q": q})
-    return result
+        results.update({"q": q})
+    return results
 
 
 @app.get("/models/{model_name}")
