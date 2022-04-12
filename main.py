@@ -41,6 +41,19 @@ class ModelName(str, Enum):
     lenet = "lenet"
 
 
+class Image(BaseModel):
+    url: HttpUrl
+    name: str
+
+
+@app.post("/images/multiple/")
+async def create_multiple_images(
+        # images ожидается в Body как json списка Image
+        images: list[Image] = Body(..., description="Изображения")
+):
+    return images
+
+
 @app.post("/offers/")
 async def create_offer(offer: Offer):
     return offer
