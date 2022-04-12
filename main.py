@@ -3,10 +3,19 @@ from enum import Enum
 from typing import Optional
 
 from fastapi import FastAPI, Query, Path, Body
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, HttpUrl
 
 app = FastAPI()
 fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]
+
+
+class Tag(BaseModel):
+    name: str = Field(..., max_length=50, description="Tag name")
+    key: int = Field(..., gt=0, description="Key must be positive")
+    url: HttpUrl
+
+    def __hash__(self):
+        return hash(f"{self.key}:{self.name}")
 
 
 class Item(BaseModel):
@@ -16,12 +25,31 @@ class Item(BaseModel):
     )
     price: float = Field(..., gt=0, description="The price must be greater than zero")
     tax: Optional[float] = Field(None, description="Tax is not required")
+    tags: list[Tag]
+
+
+class Offer(BaseModel):
+    name: str
+    description: Optional[str] = None
+    price: float
+    items: list[Item]
 
 
 class ModelName(str, Enum):
     alexnet = "alexnet"
     resnet = "resnet"
     lenet = "lenet"
+
+
+@app.post("/offers/")
+async def create_offer(offer: Offer):
+    return offer
+
+
+@app.put("/items/{item_id}")
+async def update_item(item_id: int, item: Item):
+    results = {"item_id": item_id, "item": item}
+    return results
 
 
 @app.get("/items/{item_id}")
@@ -71,21 +99,6 @@ async def create_item(item: Item):  # тут item будет в body и пров
 class User(BaseModel):
     username: str
     full_name: Optional[str] = None
-
-
-@app.put("/items/{item_id}")
-async def update_item(
-    *,
-    item_id: int,
-    item: Item,  # модель должна быть в Body
-    user: User,  # модель должна быть в Body
-    importance: int = Body(..., gt=0),
-    q: Optional[str] = None
-):
-    results = {"item_id": item_id, "item": item, "user": user, "importance": importance}
-    if q:
-        results.update({"q": q})
-    return results
 
 
 @app.get("/models/{model_name}")
