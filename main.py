@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Optional
 
 from fastapi import FastAPI, Query, Path, Body
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 app = FastAPI()
 fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]
@@ -11,9 +11,11 @@ fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"
 
 class Item(BaseModel):
     name: str
-    description: Optional[str] = None
-    price: float
-    tax: Optional[float] = None
+    description: Optional[str] = Field(
+        None, title="The description of the item", max_length=300
+    )
+    price: float = Field(..., gt=0, description="The price must be greater than zero")
+    tax: Optional[float] = Field(None, description="Tax is not required")
 
 
 class ModelName(str, Enum):
