@@ -70,7 +70,7 @@ async def create_multiple_images(
     return images
 
 
-@app.post("/offers/")
+@app.post("/offers/", response_model=Offer)
 async def create_offer(offer: Offer):
     return offer
 
