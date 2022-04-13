@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Optional
 from uuid import UUID
 
-from fastapi import FastAPI, Query, Path, Body
+from fastapi import FastAPI, Query, Path, Body, Header
 from pydantic import BaseModel, Field, HttpUrl
 
 app = FastAPI()
@@ -55,6 +55,11 @@ class ModelName(str, Enum):
 class Image(BaseModel):
     url: HttpUrl = Field(..., example="https://example.com")
     name: str = Field(..., example="image name")
+
+
+@app.get("/user_agent/")
+async def read_user_agent(user_agent: Optional[str] = Header(None)):
+    return {"User-Agent": user_agent}
 
 
 @app.post("/images/multiple/")
