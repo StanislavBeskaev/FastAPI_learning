@@ -59,8 +59,8 @@ class ModelName(str, Enum):
 
 
 class Image(BaseModel):
-    url: HttpUrl
-    name: str
+    url: HttpUrl = Field(..., example="https://example.com")
+    name: str = Field(..., example="image name")
 
 
 @app.post("/images/multiple/")
