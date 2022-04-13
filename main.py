@@ -5,7 +5,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import FastAPI, Query, Path, Body, Header
-from pydantic import BaseModel, Field, HttpUrl
+from pydantic import BaseModel, Field, HttpUrl, EmailStr
 
 app = FastAPI()
 fake_items_db = [{"item_name": "Foo"}, {"item_name": "Bar"}, {"item_name": "Baz"}]
@@ -156,11 +156,6 @@ async def read_items(q: list[str] = q_list_default):
     return query_items
 
 
-class User(BaseModel):
-    username: str
-    full_name: Optional[str] = None
-
-
 @app.get("/models/{model_name}")
 async def get_model(model_name: ModelName):
     if model_name == ModelName.alexnet:
@@ -181,3 +176,21 @@ async def read_file(file_path: str, encoding: str = "utf-8"):
         content = file.read()
 
     return {"content": content}
+
+
+class UserIn(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
+    full_name: Optional[str] = None
+
+
+class UserOut(BaseModel):
+    username: str
+    email: EmailStr
+    full_name: Optional[str] = None
+
+
+@app.post("/user/", response_model=UserOut)
+async def create_user(user: UserIn):
+    return user
