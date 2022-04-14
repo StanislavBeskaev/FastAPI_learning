@@ -1,6 +1,6 @@
 from typing import Optional, Union, Dict
 
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, Form
 from loguru import logger
 from pydantic import BaseModel, EmailStr
 
@@ -84,3 +84,13 @@ async def read_item(item_id: str):
 @app.get("/keyword-weights/", response_model=Dict[str, float])
 async def read_keyword_weights():
     return {"foo": 2.3, "bar": 3.4}
+
+
+@app.post("/login/")
+async def login(
+        username: str = Form(..., description="user name"),
+        password: str = Form(..., description="password must be strong!"),
+        email: EmailStr = Form(None)
+):
+    logger.debug(f"try login with credentials: {username=} {password=} {email=}")
+    return {"username": username}
