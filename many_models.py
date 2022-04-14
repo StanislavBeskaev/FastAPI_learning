@@ -1,6 +1,6 @@
 from typing import Optional, Union, Dict
 
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from loguru import logger
 from pydantic import BaseModel, EmailStr
 
@@ -76,7 +76,7 @@ default_item = {
 
 
 # FastAPI сам преобразует к нужной модели
-@app.get("/items/{item_id}", response_model=Union[PlaneItem, CarItem, BaseItem])
+@app.get("/items/{item_id}", response_model=Union[PlaneItem, CarItem, BaseItem], status_code=status.HTTP_200_OK)
 async def read_item(item_id: str):
     return items.get(item_id, default_item)
 
