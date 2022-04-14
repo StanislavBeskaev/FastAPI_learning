@@ -1,4 +1,4 @@
-from typing import Optional, Union
+from typing import Optional, Union, Dict
 
 from fastapi import FastAPI
 from loguru import logger
@@ -79,3 +79,8 @@ default_item = {
 @app.get("/items/{item_id}", response_model=Union[PlaneItem, CarItem, BaseItem])
 async def read_item(item_id: str):
     return items.get(item_id, default_item)
+
+
+@app.get("/keyword-weights/", response_model=Dict[str, float])
+async def read_keyword_weights():
+    return {"foo": 2.3, "bar": 3.4}
