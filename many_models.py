@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 from fastapi import FastAPI
 from loguru import logger
@@ -44,3 +44,38 @@ def fake_save_user(user_in: UserIn) -> UserInDB:
 async def create_user(user_in: UserIn):
     user_saved = fake_save_user(user_in)
     return user_saved
+
+
+class BaseItem(BaseModel):
+    description: str
+    type: str
+
+
+class CarItem(BaseItem):
+    type = "car"
+
+
+class PlaneItem(BaseItem):
+    type = "plane"
+    size: int
+
+
+items = {
+    "item1": {"description": "All my friends drive a low rider", "type": "car"},
+    "item2": {
+        "description": "Music is my aeroplane, it's my aeroplane",
+        "type": "plane",
+        "size": 5,
+    },
+}
+
+default_item = {
+    "description": "default item",
+    "type": "base"
+}
+
+
+# FastAPI сам преобразует к нужной модели
+@app.get("/items/{item_id}", response_model=Union[PlaneItem, CarItem, BaseItem])
+async def read_item(item_id: str):
+    return items.get(item_id, default_item)
