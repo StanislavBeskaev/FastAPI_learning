@@ -8,24 +8,22 @@ from pydantic import BaseModel, EmailStr
 app = FastAPI()
 
 
-class UserIn(BaseModel):
+class UserBase(BaseModel):
     username: str
+    email: EmailStr
+    full_name: Optional[str] = None
+
+
+class UserIn(UserBase):
     password: str
-    email: EmailStr
-    full_name: Optional[str] = None
 
 
-class UserOut(BaseModel):
-    username: str
-    email: EmailStr
-    full_name: Optional[str] = None
+class UserOut(UserBase):
+    pass
 
 
-class UserInDB(BaseModel):
-    username: str
+class UserInDB(UserBase):
     hashed_password: str
-    email: EmailStr
-    full_name: Optional[str] = None
 
 
 def fake_password_hasher(raw_password: str):
