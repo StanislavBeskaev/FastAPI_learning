@@ -1,5 +1,7 @@
 from fastapi import FastAPI, HTTPException, Request, Path
-from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse, PlainTextResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from loguru import logger
 
 
@@ -40,3 +42,20 @@ async def read_unicorn(name: str = Path(..., description="yolo is awesome, try i
     if name == "yolo":
         raise UnicornException(name=name)
     return {"unicorn_name": name}
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request, exc):
+    return PlainTextResponse(str(exc.detail), status_code=exc.status_code)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request, exc):
+    return PlainTextResponse(str(exc), status_code=400)
+
+
+@app.get("/books/{book_id}")
+async def read_book(book_id: int = Path(..., description="number 3 is cool, you'll like it")):
+    if book_id == 3:
+        raise HTTPException(status_code=418, detail="Nope! I don't like 3.")
+    return {"book_id": book_id}
