@@ -1,4 +1,7 @@
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Request, Path
+from fastapi.responses import JSONResponse
+from loguru import logger
+
 
 app = FastAPI()
 
@@ -15,3 +18,25 @@ async def read_item(item_id: str):
         )
 
     return {"item": items[item_id]}
+
+
+class UnicornException(Exception):
+    def __init__(self, name: str):
+        self.name = name
+
+
+@app.exception_handler(UnicornException)  # обработчик своего исключения
+async def unicorn_exception_handler(request: Request, exc: UnicornException):
+    logger.debug(f"{request.__dict__}")
+    logger.debug(f"{exc.__dict__}")
+    return JSONResponse(
+        status_code=418,
+        content={"message": f"Oops! {exc.name} did something. There goes a rainbow..."},
+    )
+
+
+@app.get("/unicorns/{name}")
+async def read_unicorn(name: str = Path(..., description="yolo is awesome, try it!")):
+    if name == "yolo":
+        raise UnicornException(name=name)
+    return {"unicorn_name": name}
