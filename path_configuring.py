@@ -1,6 +1,8 @@
 from typing import Optional, Set
 
-from fastapi import FastAPI, status
+from fastapi import FastAPI
+from fastapi.encoders import jsonable_encoder
+from loguru import logger
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -36,3 +38,19 @@ async def read_items():
 @app.get("/users/", tags=["users"])
 async def read_users():
     return [{"username": "johndoe"}]
+
+
+fake_db = {}
+
+
+@app.put("/items/{item_id}")
+def update_item(item_id: str, item: Item):
+    logger.debug(f"update item with id {item_id} new data: {item}")
+
+    json_compatible_item_data = jsonable_encoder(item)
+    logger.debug(f"{json_compatible_item_data=}")
+
+    fake_db[item_id] = json_compatible_item_data
+    logger.debug(f"new db is: {fake_db}")
+
+    return {"current_db": fake_db}
