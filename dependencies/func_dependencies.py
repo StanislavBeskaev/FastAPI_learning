@@ -1,8 +1,18 @@
 from typing import Optional
 
 from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 async def common_parameters(q: Optional[str] = None, skip: int = 0, limit: int = 100) -> dict:
