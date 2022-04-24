@@ -17,6 +17,7 @@ SQLAlchemy = "^1.4.35"
 pytest = "^7.1.2"
 requests = "^2.27.1"
 coverage = "^6.3.2"
+unittest = "^0.0"
 
 [tool.poetry.dev-dependencies]
 
