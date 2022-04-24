@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, BackgroundTasks
 from loguru import logger
 
 from ..auth import Admin, AdminHandler, check_auth, get_current_admin_username
@@ -11,8 +11,9 @@ router = APIRouter()
     "/",
     dependencies=[Depends(check_auth)]
 )
-async def create_admin(new_admin: Admin):
+async def create_admin(new_admin: Admin, background_tasks: BackgroundTasks):
     AdminHandler.add_admin(new_admin)
+    background_tasks.add_task(AdminHandler.save_admin_list)
     return {"message": f"Created new admin: {new_admin.username}"}
 
 
@@ -31,6 +32,7 @@ async def admins_list():
     "/",
     dependencies=[Depends(check_auth)]
 )
-async def delete_admin_by_name(username: str):
+async def delete_admin_by_name(username: str, background_tasks: BackgroundTasks):
     AdminHandler.delete_admin_by_username(username)
+    background_tasks.add_task(AdminHandler.save_admin_list)
     return {"message": f"Admin '{username}' deleted"}

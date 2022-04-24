@@ -47,7 +47,6 @@ class AdminHandler:
             raise HTTPException(status_code=409, detail=f"Admin with username '{new_admin.username}' already exist")
 
         cls._admin_list.append(new_admin)
-        cls._save_admin_list()
         logger.debug(f"Добавлен новый админ: {new_admin}")
 
     @classmethod
@@ -57,7 +56,6 @@ class AdminHandler:
 
         admins = list(filter(lambda admin: admin.username != username, cls._admin_list))
         cls._admin_list = admins
-        cls._save_admin_list()
         logger.debug(f"Удалён админ: {username}")
 
     @classmethod
@@ -67,7 +65,7 @@ class AdminHandler:
                 return admin
 
     @classmethod
-    def _save_admin_list(cls) -> None:
+    def save_admin_list(cls) -> None:
         with open(ADMINS_FILE, mode="w") as file:
             json.dump(obj=[admin.dict() for admin in cls._admin_list], fp=file, indent=2, ensure_ascii=False)
         logger.debug(f"admin_list saved")
