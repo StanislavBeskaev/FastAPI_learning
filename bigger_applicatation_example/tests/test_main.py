@@ -1,11 +1,8 @@
-from fastapi.testclient import TestClient
-
-from ..main import app
-
-client = TestClient(app)
+from .base_test_class import BaseTestCase
 
 
-def test_main():
-    response = client.get("/?token=jessica", )
-    assert response.status_code == 200
-    assert response.json() == {"message": "Hello Bigger Applications!"}
+class TestMain(BaseTestCase):
+    def test_main(self):
+        response = self.client.get("/", params={"token": self.valid_token})
+        assert response.status_code == 200
+        assert response.json() == {"message": "Hello Bigger Applications!"}
