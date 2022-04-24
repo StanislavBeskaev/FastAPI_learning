@@ -8,3 +8,12 @@
 
 ## Документация в формате OpenAPI
 Доступна по `/openapi.json`
+
+
+## Тесты
+Выполнить `pytest`
+
+## Code coverage
+Собрать статистику покрытия: `coverage run -m pytest`
+Отчёт о покрытии в консоли: `coverage report -m`
+Отчёт о покрытии в html: `coverage html`
