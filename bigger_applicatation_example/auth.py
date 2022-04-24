@@ -6,7 +6,7 @@ from pathlib import Path
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from loguru import logger
-from pydantic import BaseModel
+from pydantic import parse_file_as
 
 security = HTTPBasic()
 
@@ -18,18 +18,14 @@ class Admin(HTTPBasicCredentials):
         return f"{self.username}/{self.password}"
 
 
-class AdminList(BaseModel):
-    admins: list[Admin]
-
-
-def parse_admins() -> AdminList:
+def parse_admins() -> list[Admin]:
     logger.warning("parse_admins")
-    return AdminList.parse_file(ADMINS_FILE)
+    return parse_file_as(list[Admin], ADMINS_FILE, )
 
 
 class AdminHandler:
     __instance = None
-    admins_list: AdminList = parse_admins()
+    _admin_list: list[Admin] = parse_admins()
 
     def __new__(cls, *args, **kwargs):
         if not cls.__instance:
@@ -41,44 +37,40 @@ class AdminHandler:
         return cls.__instance
 
     @classmethod
-    def get_admin_list(cls) -> AdminList:
-        logger.debug(f"{cls.__name__}: get_admin_list")
-        return cls.admins_list
-
-    @classmethod
     def get_admins(cls) -> list[Admin]:
         logger.debug(f"{cls.__name__}: get_admins")
-        return cls.admins_list.admins
-
-    @classmethod
-    def get_admin_by_username(cls, username: str) -> Admin:
-        for admin in cls.admins_list.admins:
-            if admin.username == username:
-                return admin
+        return cls._admin_list
 
     @classmethod
     def add_admin(cls, new_admin: Admin) -> None:
-        if cls.get_admin_by_username(new_admin.username):
+        if cls._get_admin_by_username(new_admin.username):
             raise HTTPException(status_code=409, detail=f"Admin with username '{new_admin.username}' already exist")
 
-        cls.admins_list.admins.append(new_admin)
+        cls._admin_list.append(new_admin)
         cls._save_admin_list()
         logger.debug(f"Добавлен новый админ: {new_admin}")
 
     @classmethod
     def delete_admin_by_username(cls, username: str) -> None:
-        if not cls.get_admin_by_username(username=username):
+        if not cls._get_admin_by_username(username=username):
             raise HTTPException(status_code=400, detail=f"Admin with username: {username} not exist")
 
-        admins = list(filter(lambda admin: admin.username != username, cls.admins_list.admins))
-        cls.admins_list.admins = admins
+        admins = list(filter(lambda admin: admin.username != username, cls._admin_list))
+        cls._admin_list = admins
         cls._save_admin_list()
         logger.debug(f"Удалён админ: {username}")
 
     @classmethod
+    def _get_admin_by_username(cls, username: str) -> Admin:
+        for admin in cls._admin_list:
+            if admin.username == username:
+                return admin
+
+    @classmethod
     def _save_admin_list(cls) -> None:
         with open(ADMINS_FILE, mode="w") as file:
-            json.dump(obj=cls.admins_list.dict(), fp=file, indent=2, ensure_ascii=False)
+            json.dump(obj=[admin.dict() for admin in cls._admin_list], fp=file, indent=2, ensure_ascii=False)
+        logger.debug(f"admin_list saved")
 
 
 def compare(first, second):
