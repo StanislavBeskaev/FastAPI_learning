@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Display Webcam Stream</title>
+
+<style>
+#container {
+    display: flex;
+    flex-direction: row;
+	width: 540px;
+	height: 405px;
+	border: 10px #333 solid;
+}
+#videoElement {
+	width: 540px;
+	height: 405px;
+	background-color: #666;
+}
+.buttons {
+    margin: 30px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.btn{
+    height: 40px;
+    width: 60px;
+    padding: 5px;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 16px;
+}
+
+.btn:hover{
+    cursor: pointer;
+    color: #007acc;
+}
+
+.start{
+    background-color: #00dd00;
+}
+
+.stop {
+    background-color: #f30000;
+}
+
+.snap {
+    background-color: lightblue;
+    visibility: hidden;
+}
+
+</style>
+</head>
+
+<body>
+<div id="container">
+	<video autoplay="true" id="videoElement">
+
+	</video>
+    <div class="buttons">
+        <button onclick="start()" class="btn start">Start</button>
+        <button onclick="stop()" class="btn stop">Stop</button>
+        <button id="snap" onclick="take_snap()" class="btn snap">Snap</button>
+    </div>
+    <canvas id="canvas" width="640" height="480"></canvas>
+</div>
+<script>
+    let playing = false
+    const video = document.querySelector("#videoElement")
+    const canvas = document.querySelector('canvas')
+    const snap = document.getElementById('snap')
+
+    width = 540
+    height = 405
+    canvas.width = width
+    canvas.height = height
+    const context = canvas.getContext('2d')
+
+    function start() {
+        if (navigator.mediaDevices.getUserMedia) {
+          navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream
+                playing = true
+                show_hide_snap()
+            })
+            .catch(() => {
+                console.log("Something went wrong!")
+                playing = false
+                show_hide_snap()
+            })
+            }
+    }
+
+    function stop() {
+        const stream = video.srcObject;
+        const tracks = stream.getTracks()
+
+        for (let i = 0; i < tracks.length; i++) {
+        const track = tracks[i]
+        track.stop()
+        }
+
+        video.srcObject = null
+        playing = false
+        show_hide_snap()
+
+    }
+
+    function show_hide_snap() {
+        snap.style.visibility = playing ? "visible" : "hidden"
+    }
+
+    function take_snap() {
+        context.fillRect(0, 0, width, height)
+        context.drawImage(video, 0, 0, width, height)
+    }
+</script>
+</body>
+</html>
