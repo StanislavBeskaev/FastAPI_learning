@@ -22,19 +22,19 @@ class TestAdmin(BaseTestCase):
         logger.info(f"{cls.__name__}: setUpClass, добавляем admin_for_delete в MOCK_ADMIN_LIST")
         MOCK_ADMIN_LIST.append(cls.admin_for_delete)
 
-        cls.right_admin_list = AdminHandler._admin_list[:]
+        cls.right_admin_list = AdminHandler()._admin_list[:]
         logger.info(f"{cls.__name__}: setUpClass, подменяем AdminHandler._admin_list на MOCK_ADMIN_LIST")
-        AdminHandler._admin_list = MOCK_ADMIN_LIST
+        AdminHandler()._admin_list = MOCK_ADMIN_LIST
 
     @classmethod
     def tearDownClass(cls) -> None:
         logger.info(f"{cls.__name__}: tearDownClass, возвращаем AdminHandler._admin_list")
-        AdminHandler._admin_list = cls.right_admin_list
-        AdminHandler.save_admin_list()
+        AdminHandler()._admin_list = cls.right_admin_list
+        AdminHandler().save_admin_list()
 
     def test_list_success(self):
-        right_admin_list = AdminHandler._admin_list[:]
-        AdminHandler._admin_list = MOCK_ADMIN_LIST
+        right_admin_list = AdminHandler()._admin_list[:]
+        AdminHandler()._admin_list = MOCK_ADMIN_LIST
 
         response = self.client.get("/admin/", params=self.valid_params, headers=self.valid_headers)
 
@@ -42,7 +42,7 @@ class TestAdmin(BaseTestCase):
         logger.debug(response.json())
         self.assertEqual(response.json(), [{"username": admin.username} for admin in MOCK_ADMIN_LIST])
 
-        AdminHandler._admin_list = right_admin_list
+        AdminHandler()._admin_list = right_admin_list
 
     def test_list_miss_params(self):
         response = self.client.get("/admin/")
