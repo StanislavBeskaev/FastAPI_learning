@@ -27,15 +27,6 @@ class AdminHandler:
     __instance = None
     _admin_list: list[Admin] = parse_admins()
 
-    def __new__(cls, *args, **kwargs):
-        if not cls.__instance:
-            logger.debug("Создан instance AdminHandler")
-            cls.__instance = super().__new__(cls)
-        else:
-            logger.debug("AdminHandler взят из __instance")
-
-        return cls.__instance
-
     @classmethod
     def get_admins(cls) -> list[Admin]:
         logger.debug(f"{cls.__name__}: get_admins")
@@ -76,7 +67,7 @@ def compare(first, second):
 
 
 def check_auth(credentials: HTTPBasicCredentials = Depends(security)) -> Admin:
-    logger.debug(f"credentials: {credentials}")
+    logger.debug(f"check_auth credentials: {credentials}")
     current_admin = None
 
     for admin in AdminHandler.get_admins():
@@ -94,4 +85,6 @@ def check_auth(credentials: HTTPBasicCredentials = Depends(security)) -> Admin:
 
 
 def get_current_admin_username(credentials: HTTPBasicCredentials = Depends(security)) -> str:
-    return check_auth(credentials).username
+    username = check_auth(credentials).username
+    logger.debug(f"Пользователь {username} запросил имя пользователя")
+    return username

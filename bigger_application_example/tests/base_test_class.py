@@ -6,4 +6,5 @@ from ..main import app
 
 class BaseTestCase(TestCase):
     client = TestClient(app)
-    valid_token = "jessica"
+    valid_params = {"token": "jessica"}
+    valid_headers = {"x-token": "x-token"}

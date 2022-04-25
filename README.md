@@ -14,6 +14,6 @@
 Выполнить `pytest`
 
 ## Code coverage
-Собрать статистику покрытия: `coverage run -m pytest`
+Собрать статистику покрытия: `coverage run -m unittest`
 Отчёт о покрытии в консоли: `coverage report -m`
 Отчёт о покрытии в html: `coverage html`

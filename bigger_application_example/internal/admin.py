@@ -20,7 +20,6 @@ async def create_admin(new_admin: Admin, background_tasks: BackgroundTasks):
 
 @router.get("/username", description="Имя текущего админа")
 def read_admin_username(username: str = Depends(get_current_admin_username)):
-    logger.debug(f"Пользователь {username} запросил имя пользователя")
     return {"admin": username}
 
 
