@@ -4,31 +4,45 @@ from ..auth import Admin, AdminHandler
 from .base_test_class import BaseTestCase
 
 
-# TODO mock списка админов
+MOCK_ADMIN_LIST = [
+    Admin(username="user1", password="1"),
+    Admin(username="user2", password="2"),
+]
+
+
 class TestAdmin(BaseTestCase):
-    valid_auth = ("joe", "joe")
+    valid_auth = (MOCK_ADMIN_LIST[0].username, MOCK_ADMIN_LIST[0].password)
     valid_new_admin = Admin(username="new admin", password="123")
-    not_valid_new_admin = Admin(username="admin", password="admin")
+    not_valid_new_admin = MOCK_ADMIN_LIST[0]
     not_valid_admin_username = "not valid"
     admin_for_delete = Admin(username="for delete", password="del")
 
     @classmethod
     def setUpClass(cls) -> None:
-        logger.info(f"{cls.__name__}: setUpClass, создаём тестового админа")
-        AdminHandler.add_admin(cls.admin_for_delete)
-        AdminHandler.save_admin_list()
+        logger.info(f"{cls.__name__}: setUpClass, добавляем admin_for_delete в MOCK_ADMIN_LIST")
+        MOCK_ADMIN_LIST.append(cls.admin_for_delete)
+
+        cls.right_admin_list = AdminHandler._admin_list[:]
+        logger.info(f"{cls.__name__}: setUpClass, подменяем AdminHandler._admin_list на MOCK_ADMIN_LIST")
+        AdminHandler._admin_list = MOCK_ADMIN_LIST
 
     @classmethod
     def tearDownClass(cls) -> None:
-        logger.info(f"{cls.__name__}: tearDownClass, удаляем созданного админа")
-        AdminHandler.delete_admin_by_username(cls.valid_new_admin.username)
+        logger.info(f"{cls.__name__}: tearDownClass, возвращаем AdminHandler._admin_list")
+        AdminHandler._admin_list = cls.right_admin_list
         AdminHandler.save_admin_list()
 
     def test_list_success(self):
+        right_admin_list = AdminHandler._admin_list[:]
+        AdminHandler._admin_list = MOCK_ADMIN_LIST
+
         response = self.client.get("/admin/", params=self.valid_params, headers=self.valid_headers)
 
         self.assertEqual(response.status_code, 200)
-        # TODO проверка списка
+        logger.debug(response.json())
+        self.assertEqual(response.json(), [{"username": admin.username} for admin in MOCK_ADMIN_LIST])
+
+        AdminHandler._admin_list = right_admin_list
 
     def test_list_miss_params(self):
         response = self.client.get("/admin/")
@@ -43,7 +57,7 @@ class TestAdmin(BaseTestCase):
         )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {"admin": "joe"})
+        self.assertEqual(response.json(), {"admin": f"{self.valid_auth[0]}"})
 
     def test_username_not_auth(self):
         response = self.client.get(
