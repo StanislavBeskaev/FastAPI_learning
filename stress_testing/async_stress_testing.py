@@ -1,8 +1,10 @@
 import asyncio
 import json
+import os
 import time
-from pydantic import BaseModel
+from pathlib import Path
 
+from pydantic import BaseModel
 import aiohttp
 from loguru import logger
 
@@ -37,7 +39,7 @@ async def main():
     results_file = "async_stress_testing.json"
     resource_url = 'http://127.0.0.1:8000/notes/'
     interval = 10
-    max_task_count = 20
+    max_task_count = 2
     task_step = 1
     logger.info(f"Тест {resource_url}, интервал: {interval},"
                 f" максимальное количество tasks {max_task_count}, шаг {task_step}")
@@ -75,7 +77,8 @@ async def main():
                 ).dict()
             )
 
-    with open(results_file, mode='w', encoding='utf-8') as file:
+    result_file_path = os.path.join(Path(__file__).resolve().parent, results_file)
+    with open(result_file_path, mode='w', encoding='utf-8') as file:
         json.dump(obj=test_results, fp=file, indent=2, ensure_ascii=False)
 
     logger.info(f"Результаты записаны в файл: {results_file}")

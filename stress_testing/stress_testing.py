@@ -5,16 +5,16 @@ import requests
 from loguru import logger
 
 
-RESOURCE_URL = 'http://127.0.0.1:8000/notes/'
 success_count = 0
 
 
 class StressTestingHandler(threading.Thread):
-    def __init__(self, interval: int):
+    def __init__(self, interval: int, url):
         super().__init__()
         self.interval = interval
         self.counter = 0
-        logger.info(f'Поток {self.name} начал работать')
+        self.url = url
+        logger.debug(f'Поток {self.name} начал работать')
 
     def run(self):
         global success_count
@@ -22,7 +22,7 @@ class StressTestingHandler(threading.Thread):
         delta = 0
         while delta < self.interval:
             try:
-                requests.get(RESOURCE_URL)
+                requests.get(self.url)
                 self.counter += 1
                 success_count += 1
             except:
@@ -34,11 +34,11 @@ class StressTestingHandler(threading.Thread):
                      f' Rate {self.counter/self.interval}')
 
 
-def make_stress_testing(thread_count: int = 10, interval: int = 60):
-    logger.info(f"Старт. Количество потоков {thread_count}, интервал {interval} секунд, endpoint: {RESOURCE_URL}")
+def make_stress_testing(url: str, thread_count: int = 10, interval: int = 60, ):
+    logger.info(f"Старт. Количество потоков {thread_count}, интервал {interval} секунд, endpoint: {url}")
     threads = []
     for i in range(0, thread_count):
-        thread = StressTestingHandler(interval=interval)
+        thread = StressTestingHandler(interval=interval, url=url)
         thread.start()
         threads.append(thread)
 
@@ -49,4 +49,11 @@ def make_stress_testing(thread_count: int = 10, interval: int = 60):
 
 
 if __name__ == "__main__":
-    make_stress_testing(thread_count=3, interval=10)
+    resource_url = 'http://127.0.0.1:8000/users/'
+    interval = 10
+    max_thread_count = 5
+    thread_step = 1
+
+    for thread_count in range(1, max_thread_count + 1):
+        success_count = 0
+        make_stress_testing(thread_count=thread_count, interval=10, url=resource_url)
