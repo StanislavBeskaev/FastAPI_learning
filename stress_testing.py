@@ -5,7 +5,7 @@ import requests
 from loguru import logger
 
 
-RESOURCE_URL = 'http://127.0.0.1:8000/items/'
+RESOURCE_URL = 'http://127.0.0.1:8000/notes/'
 success_count = 0
 
 
@@ -49,4 +49,4 @@ def make_stress_testing(thread_count: int = 10, interval: int = 60):
 
 
 if __name__ == "__main__":
-    make_stress_testing(thread_count=20, interval=10)
+    make_stress_testing(thread_count=3, interval=10)

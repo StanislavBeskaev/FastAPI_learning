@@ -19,6 +19,8 @@ requests = "^2.27.1"
 coverage = "^6.3.2"
 unittest = "^0.0"
 peewee = "^3.14.10"
+databases = {extras = ["aiosqlite"], version = "^0.5.5"}
+aiosqlite = "^0.17.0"
 
 [tool.poetry.dev-dependencies]
 
