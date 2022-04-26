@@ -38,7 +38,7 @@ class AdminHandler:
 
     def get_admins(self) -> list[Admin]:
         logger.debug(f"{self.__class__.__name__}: get_admins")
-        return self._admin_list
+        return self._admin_list[:]
 
     def add_admin(self, new_admin: Admin) -> None:
         if self._get_admin_by_username(new_admin.username):

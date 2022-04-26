@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from loguru import logger
 
 from ..auth import Admin, AdminHandler
@@ -24,7 +26,7 @@ class TestAdmin(BaseTestCase):
 
         cls.right_admin_list = AdminHandler()._admin_list[:]
         logger.info(f"{cls.__name__}: setUpClass, подменяем AdminHandler._admin_list на MOCK_ADMIN_LIST")
-        AdminHandler()._admin_list = MOCK_ADMIN_LIST
+        AdminHandler()._admin_list = MOCK_ADMIN_LIST[:]
 
     @classmethod
     def tearDownClass(cls) -> None:
@@ -33,16 +35,11 @@ class TestAdmin(BaseTestCase):
         AdminHandler().save_admin_list()
 
     def test_list_success(self):
-        right_admin_list = AdminHandler()._admin_list[:]
-        AdminHandler()._admin_list = MOCK_ADMIN_LIST
+        with patch("bigger_application_example.auth.AdminHandler.get_admins", return_value=MOCK_ADMIN_LIST):
+            response = self.client.get("/admin/", params=self.valid_params, headers=self.valid_headers)
 
-        response = self.client.get("/admin/", params=self.valid_params, headers=self.valid_headers)
-
-        self.assertEqual(response.status_code, 200)
-        logger.debug(response.json())
-        self.assertEqual(response.json(), [{"username": admin.username} for admin in MOCK_ADMIN_LIST])
-
-        AdminHandler()._admin_list = right_admin_list
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json(), [{"username": admin.username} for admin in MOCK_ADMIN_LIST])
 
     def test_list_miss_params(self):
         response = self.client.get("/admin/")
@@ -68,6 +65,8 @@ class TestAdmin(BaseTestCase):
         self.assertEqual(response.json(), {"detail": "Not authenticated"})
 
     def test_create_admin_success(self):
+        admins_for_check = AdminHandler().get_admins()
+
         response = self.client.post(
             "/admin/",
             params=self.valid_params,
@@ -79,7 +78,12 @@ class TestAdmin(BaseTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"message": f"Created new admin: {self.valid_new_admin.username}"})
 
+        admins_for_check.append(self.valid_new_admin)
+        self.assertEqual(AdminHandler().get_admins(), admins_for_check)
+
     def test_create_admin_already_exist(self):
+        admins_for_check = AdminHandler().get_admins()
+
         response = self.client.post(
             "/admin/",
             params=self.valid_params,
@@ -93,8 +97,11 @@ class TestAdmin(BaseTestCase):
             response.json(),
             {"detail": f"Admin with username '{self.not_valid_new_admin.username}' already exist"}
         )
+        self.assertEqual(AdminHandler().get_admins(), admins_for_check)
 
     def test_create_admin_not_auth(self):
+        admins_for_check = AdminHandler().get_admins()
+
         response = self.client.post(
             "/admin/",
             json=self.valid_new_admin.dict()
@@ -102,8 +109,11 @@ class TestAdmin(BaseTestCase):
 
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json(), {"detail": "Not authenticated"})
+        self.assertEqual(AdminHandler().get_admins(), admins_for_check)
 
     def test_delete_admin_success(self):
+        admins_for_check = AdminHandler().get_admins()
+
         response = self.client.delete(
             "/admin/",
             headers=self.valid_headers,
@@ -117,7 +127,12 @@ class TestAdmin(BaseTestCase):
             {"message": f"Admin '{self.admin_for_delete.username}' deleted"}
         )
 
+        admins_for_check = list(filter(lambda admin: admin.username != self.admin_for_delete.username, admins_for_check))
+        self.assertEqual(AdminHandler().get_admins(), admins_for_check)
+
     def test_delete_admin_not_valid_username(self):
+        admins_for_check = AdminHandler().get_admins()
+
         response = self.client.delete(
             "/admin/",
             headers=self.valid_headers,
@@ -130,8 +145,11 @@ class TestAdmin(BaseTestCase):
             response.json(),
             {"detail": f"Admin with username: {self.not_valid_admin_username} not exist"}
         )
+        self.assertEqual(AdminHandler().get_admins(), admins_for_check)
 
     def test_delete_admin_wrong_auth(self):
+        admins_for_check = AdminHandler().get_admins()
+
         response = self.client.delete(
             "/admin/",
             headers=self.valid_headers,
@@ -141,8 +159,11 @@ class TestAdmin(BaseTestCase):
 
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json(), {"detail": "Incorrect username or password"})
+        self.assertEqual(AdminHandler().get_admins(), admins_for_check)
 
     def test_delete_admin_incorrect_token(self):
+        admins_for_check = AdminHandler().get_admins()
+
         response = self.client.delete(
             "/admin/",
             headers=self.valid_headers,
@@ -152,8 +173,11 @@ class TestAdmin(BaseTestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json(), {"detail": "No Jessica token provided"})
+        self.assertEqual(AdminHandler().get_admins(), admins_for_check)
 
     def test_delete_admin_incorrect_x_token(self):
+        admins_for_check = AdminHandler().get_admins()
+
         response = self.client.delete(
             "/admin/",
             headers={"x-token": "incorrect"},
@@ -163,3 +187,4 @@ class TestAdmin(BaseTestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json(), {"detail": "X-Token header invalid"})
+        self.assertEqual(AdminHandler().get_admins(), admins_for_check)
