@@ -24,6 +24,7 @@ aiosqlite = "^0.17.0"
 aiohttp = "^3.8.1"
 websockets = "^10.3"
 websocket = "^0.2.1"
+Flask = "^2.1.2"
 
 [tool.poetry.dev-dependencies]
 
