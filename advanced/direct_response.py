@@ -88,3 +88,11 @@ def video():
 @app.get("/video_file", response_class=FileResponse)
 async def get_video_file():
     return video_file
+
+
+@app.get("/cookie")
+async def wanna_cookie(response: Response):
+    """Wanna some cookie?"""
+    response.set_cookie(key="token", value="secret token info", expires=20, httponly=True)
+    response.set_cookie(key="public", value="some public info", expires=200)
+    return {"message": "cookie for all!"}

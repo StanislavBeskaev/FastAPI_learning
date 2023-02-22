@@ -18,7 +18,7 @@ class TestResult(BaseModel):
     tasks_result: str
 
 
-async def stress_testing(task_id: int, session, interval: int, url: str):
+async def stress_testing(task_id: int, session: aiohttp.ClientSession, interval: int, url: str):
     logger.debug(f"Task {task_id} начала работать")
 
     counter = 0
@@ -83,4 +83,5 @@ async def main():
 
     logger.info(f"Результаты записаны в файл: {results_file}")
 
-asyncio.run(main())
+if __name__ == '__main__':
+    asyncio.run(main())
